@@ -20,7 +20,7 @@ const SvgIcon = ({ size = 24, strokeWidth = 2, children, ...props }) => (
   </svg>
 );
 
-// ... (Iconos Home, LineChart, Building, Send, FileCheck, Users, LogOut, Check, Eye, X, ChevronDown, PieChart, AlertCircle, List, Download, Edit, Info, Scaling, DollarSign, Calculator) ...
+// ... (Iconos Home, LineChart, Building, Send, FileCheck, Users, LogOut, Check, Eye, X, ChevronDown, PieChart, AlertCircle, List, Download, Edit, Info, Scaling, DollarSign, Calculator, Bell, AlertTriangle, CheckCircle2) ...
 
 const Home = (props) => (
   <SvgIcon {...props}>
@@ -187,7 +187,6 @@ const Calculator = (props) => (
   </SvgIcon>
 );
 
-// --- ¡NUEVOS ICONOS! ---
 const Bell = (props) => (
   <SvgIcon {...props}>
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -209,6 +208,16 @@ const CheckCircle2 = (props) => (
     <path d="m9 12 2 2 4-4" />
   </SvgIcon>
 );
+
+// --- ¡NUEVO ICONO! ---
+const UsersRound = (props) => (
+  <SvgIcon {...props}>
+    <path d="M18 21a8 8 0 0 0-16 0" />
+    <circle cx="10" cy="8" r="5" />
+    <path d="M22 20c0-3.37-2-6.5-4-8" />
+  </SvgIcon>
+);
+
 
 // --- FUNCIÓN DE UTILIDAD GLOBAL ---
 const normalizeToLitros = (value, unit) => {
@@ -326,17 +335,19 @@ const IndustryLayout = () => {
 const ObservatoryLayout = () => {
   const { logout, user } = useAppContext();
   const [activeView, setActiveView] = useState('dashboard');
-
+  
+  // --- ¡NUEVO! Vistas del Admin actualizadas ---
   const views = {
     dashboard: <ObservatoryDashboard />,
-    industries: <IndustriesList />,
+    gestor: <IndustryManagement />, // <-- Vista de gestión
     emdi: <PublicDashboard adminView={true} />,
   };
 
   const navigation = (
     <>
       <NavItem icon={<FileCheck />} label="Log de Envíos" isActive={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
-      <NavItem icon={<Building />} label="Industrias" isActive={activeView === 'industries'} onClick={() => setActiveView('industries')} />
+      {/* --- ¡NUEVO! Link del Sidebar actualizado --- */}
+      <NavItem icon={<UsersRound />} label="Gestión de Industrias" isActive={activeView === 'gestor'} onClick={() => setActiveView('gestor')} />
       <NavItem icon={<LineChart />} label="Dashboard EMDI" isActive={activeView === 'emdi'} onClick={() => setActiveView('emdi')} />
     </>
   );
@@ -1148,10 +1159,11 @@ const StepIndicator = ({ current, setStep }) => (
   </nav>
 );
 
-// --- Componente Input con Unidad (ACTUALIZADO CON OBSERVACIÓN) ---
+// --- Componente Input con Unidad (ACTUALIZADO CON DISEÑO SUTIL) ---
 const InputWithUnit = ({ label, name, value, unit, unitName, onValueChange, onUnitChange, error, observation, ...props }) => {
   // ¡NUEVO! Error si hay coma O si hay observación
   const hasError = error || !!observation;
+  // --- CORRECCIÓN DE UI: Quitado focus-within:bg-white ---
   const errorClasses = hasError ? 'border-red-500' : 'border-slate-300 focus-within:border-indigo-600 focus-within:border-b-2';
   return (
     <div className="flex flex-col">
@@ -1189,9 +1201,10 @@ const InputWithUnit = ({ label, name, value, unit, unitName, onValueChange, onUn
   );
 };
 
-// --- Componente Input con Unidad FIJA (ACTUALIZADO CON OBSERVACIÓN) ---
+// --- Componente Input con Unidad FIJA (ACTUALIZADO CON DISEÑO SUTIL) ---
 const SimpleInputWithUnit = ({ label, name, value, onChange, error, unit, tooltipText, observation, ...props }) => {
   const hasError = error || !!observation;
+  // --- CORRECCIÓN DE UI: Quitado focus-within:bg-white ---
   const errorClasses = hasError ? 'border-red-500' : 'border-slate-300 focus-within:border-indigo-600 focus-within:border-b-2';
   
   const labelContent = (
@@ -1233,7 +1246,7 @@ const SimpleInputWithUnit = ({ label, name, value, onChange, error, unit, toolti
   );
 };
 
-// --- Componente Input Deshabilitado (sin cambios) ---
+// --- Componente Input Deshabilitado (ACTUALIZADO CON DISEÑO SUTIL) ---
 const DisabledInput = ({ label, value, unit }) => (
   <div className="flex flex-col">
     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1515,6 +1528,7 @@ const SubmissionSummaryModal = ({ isOpen, onClose, onConfirm, formData, readOnly
           </button>
         </div>
         
+        {/* --- ¡NUEVO! Ocultar texto si es solo lectura --- */}
         {!readOnly && (
           <p className="text-sm text-slate-600 mb-6">
             Por favor, revise los datos antes de enviarlos. Esta acción no se puede deshacer.
@@ -1736,8 +1750,9 @@ const AdminReviewChecklistModal = ({
     { key: 'volGanaderos', label: 'Vol. Ganaderos', value: `${data.volGanaderos} ${data.unitGanaderos}` },
     { key: 'precioCentros', label: 'Precio Centros', value: `$${data.precioCentros}` },
     { key: 'precioGanaderos', label: 'Precio Ganaderos', value: `$${data.precioGanaderos}` },
-    ...Object.keys(data.compGanaderos).map(k => ({ key: `compGanaderos_${k}`, label: `Gan. ${k}`, value: data.compGanaderos[k] })),
-    ...Object.keys(data.compCentros).map(k => ({ key: `compCentros_${k}`, label: `C.A. ${k}`, value: data.compCentros[k] })),
+    // Aplanar los objetos de composición
+    ...Object.keys(data.compGanaderos).map(k => ({ key: `compGanaderos_${k}`, label: `Gan. ${k.replace('_', ' ')}`, value: data.compGanaderos[k] })),
+    ...Object.keys(data.compCentros).map(k => ({ key: `compCentros_${k}`, label: `C.A. ${k.replace('_', ' ')}`, value: data.compCentros[k] })),
   ];
 
   return (
@@ -1761,7 +1776,7 @@ const AdminReviewChecklistModal = ({
             <div key={key} className="p-3 bg-slate-50 rounded-lg">
               <div className="flex justify-between items-center">
                 <div>
-                  <div className="text-xs font-medium text-slate-500">{label}</div>
+                  <div className="text-xs font-medium text-slate-500 capitalize">{label}</div>
                   <div className="text-sm font-semibold text-slate-900">{value || '-'}</div>
                 </div>
                 <div className="flex space-x-2">
@@ -1825,34 +1840,190 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const IndustriesList = () => {
-  const { db } = useAppContext();
+// --- ¡NUEVA! Vista de Gestión de Industrias ---
+const IndustryManagement = () => {
+  const { db, addCompany, addUser } = useAppContext();
+  const [modalView, setModalView] = useState(null); // null | 'addIndustry' | 'manageUsers'
+  const [selectedIndustry, setSelectedIndustry] = useState(null);
+
   const industries = Array.from(db.companies.values());
+  
+  const handleOpenAddIndustry = () => {
+    setModalView('addIndustry');
+  };
+
+  const handleOpenManageUsers = (industry) => {
+    setSelectedIndustry(industry);
+    setModalView('manageUsers');
+  };
+  
+  const handleCloseModals = () => {
+    setModalView(null);
+    setSelectedIndustry(null);
+  };
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900 mb-6">
-        Industrias Registradas
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Gestión de Industrias y Usuarios
+        </h1>
+        <button
+          onClick={handleOpenAddIndustry}
+          className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700"
+        >
+          Agregar Nueva Industria
+        </button>
+      </div>
+      
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">ID</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Nombre</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">RUC (Simulado)</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">ID Interno</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">RUC</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Acciones</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-200">
             {industries.map(industry => (
               <tr key={industry.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{industry.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{industry.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{industry.ruc}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{industry.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{industry.id}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{industry.ruc}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleOpenManageUsers(industry)}
+                    className="text-indigo-600 hover:text-indigo-800"
+                  >
+                    Gestionar Usuarios
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+      
+      {modalView === 'addIndustry' && (
+        <AddIndustryModal
+          isOpen={true}
+          onClose={handleCloseModals}
+          onAdd={addCompany}
+        />
+      )}
+      
+      {modalView === 'manageUsers' && (
+        <ManageUsersModal
+          isOpen={true}
+          onClose={handleCloseModals}
+          industry={selectedIndustry}
+          users={Array.from(db.users.values())}
+          onAddUser={addUser}
+        />
+      )}
+    </div>
+  );
+};
+
+// --- ¡NUEVO! Modal para Añadir Industria ---
+const AddIndustryModal = ({ isOpen, onClose, onAdd }) => {
+  const [name, setName] = useState('');
+  const [ruc, setRuc] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name || !ruc) return;
+    onAdd(name, ruc);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h3 className="text-xl font-semibold text-slate-900 mb-4">
+          Agregar Nueva Industria
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <SimpleInputWithUnit label="Nombre de la Industria" name="name" value={name} onChange={(e) => setName(e.target.value)} unit={<Building size={16} />} />
+          <SimpleInputWithUnit label="RUC" name="ruc" value={ruc} onChange={(e) => setRuc(e.target.value)} unit="RUC" />
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50">
+              Cancelar
+            </button>
+            <button type="submit" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700">
+              Agregar Industria
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// --- ¡NUEVO! Modal para Gestionar Usuarios ---
+const ManageUsersModal = ({ isOpen, onClose, industry, users, onAddUser }) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const industryUsers = users.filter(u => u.companyId === industry.id);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name || !email || !password) return;
+    onAddUser(name, email, password, industry.id);
+    // Reset fields
+    setName(''); setEmail(''); setPassword('');
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+        <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+          <h3 className="text-xl font-semibold text-slate-900">
+            Gestionar Usuarios de: {industry.name}
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X size={24} />
+          </button>
+        </div>
+        
+        {/* Lista de usuarios existentes */}
+        <div className="mb-6">
+          <h4 className="text-md font-semibold text-slate-700 mb-2">Usuarios Actuales</h4>
+          <div className="space-y-2">
+            {industryUsers.length > 0 ? industryUsers.map(user => (
+              <div key={user.email} className="flex justify-between items-center p-2 bg-slate-50 rounded-md">
+                <span className="text-sm font-medium text-slate-800">{user.name}</span>
+                <span className="text-sm text-slate-500">{user.email}</span>
+              </div>
+            )) : (
+              <p className="text-sm text-slate-500 italic">Esta industria aún no tiene usuarios.</p>
+            )}
+          </div>
+        </div>
+        
+        {/* Formulario para añadir nuevo usuario */}
+        <form onSubmit={handleSubmit} className="space-y-4 border-t border-slate-200 pt-6">
+          <h4 className="text-md font-semibold text-slate-700">Añadir Nuevo Usuario</h4>
+          <SimpleInputWithUnit label="Nombre Completo" name="name" value={name} onChange={(e) => setName(e.target.value)} unit={<Users size={16} />} />
+          <SimpleInputWithUnit label="Email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} unit="@" />
+          <SimpleInputWithUnit label="Contraseña" name="password" value={password} onChange={(e) => setPassword(e.target.value)} unit={<LogOut size={16} />} />
+          <div className="flex justify-end space-x-3 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50">
+              Cerrar
+            </button>
+            <button type="submit" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700">
+              Añadir Usuario
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -2184,7 +2355,7 @@ function App() {
     setUser(null);
   };
   
-  // --- ¡NUEVAS FUNCIONES DE NOTIFICACIÓN! ---
+  // --- ¡NUEVAS FUNCIONES DE NOTIFICACIÓN Y GESTIÓN! ---
   const createNotification = (userId, text) => {
     setDb(prevDb => {
       const newNotifications = new Map(prevDb.notifications);
@@ -2205,7 +2376,62 @@ function App() {
       return { ...prevDb, notifications: newNotifications };
     });
   };
-  // --- FIN DE FUNCIONES DE NOTIFICACIÓN ---
+  
+  const addCompany = (name, ruc) => {
+    setDb(prevDb => {
+      const newCompanies = new Map(prevDb.companies);
+      const newSubmissions = new Map(prevDb.submissions);
+      
+      const companyId = name.toLowerCase().replace(/\s/g, '').substring(0, 6); // ej: alpina
+      const newCompany = { id: companyId, name, ruc };
+      
+      newCompanies.set(companyId, newCompany);
+      
+      // Crear un envío en borrador para el período actual
+      const subId = `${companyId}-${currentPeriod}`;
+      // (Usar la estructura de defaultData)
+      const defaultData = {
+        volCentros: '', unitCentros: 'litros', volGanaderos: '', unitGanaderos: 'litros', volTotal: 0,
+        precioCentros: '', precioGanaderos: '', precioPromedio: 0,
+        compGanaderos: { grasa: '', proteina: '', ccs: '', ufc: '', solidos_totales: '', solidos_no_grasos: '', proteina_cruda: '', proteina_verdadera: '' },
+        compCentros: { grasa: '', proteina: '', ccs: '', ufc: '', solidos_totales: '', solidos_no_grasos: '', proteina_cruda: '', proteina_verdadera: '' },
+        total_grasa: 0, total_solidos_totales: 0, total_solidos_no_grasos: 0, total_proteina: 0, total_proteina_cruda: 0, total_proteina_verdadera: 0, total_ufc: 0, total_css: 0,
+      };
+      newSubmissions.set(subId, {
+        id: subId, companyId: companyId, period: currentPeriod, companyUserEmail: null, // Aún no hay usuario
+        production: { status: 'draft', data: defaultData, observations: {} },
+        emdi: { status: 'draft', data: {}, observations: {} }
+      });
+      
+      return { ...prevDb, companies: newCompanies, submissions: newSubmissions };
+    });
+  };
+  
+  const addUser = (name, email, password, companyId) => {
+    setDb(prevDb => {
+      const newUsers = new Map(prevDb.users);
+      // Validar si el email ya existe
+      if (newUsers.has(email)) {
+        console.error("El email ya existe");
+        return prevDb; // No hacer nada
+      }
+      
+      const newUser = { email, password, name, role: 'industry', companyId };
+      newUsers.set(email, newUser);
+      
+      // Actualizar el 'companyUserEmail' en el envío actual si es el primer usuario
+      const newSubmissions = new Map(prevDb.submissions);
+      const subId = `${companyId}-${currentPeriod}`;
+      const currentSub = newSubmissions.get(subId);
+      if (currentSub && !currentSub.companyUserEmail) {
+        currentSub.companyUserEmail = email;
+        newSubmissions.set(subId, currentSub);
+      }
+      
+      return { ...prevDb, users: newUsers, submissions: newSubmissions };
+    });
+  };
+  // --- FIN DE NUEVAS FUNCIONES ---
 
   const updateSubmission = (type, status, data, companyId = null, observations = {}) => { // <-- OBSERVATIONS AHORA ES UN OBJETO
     const targetCompanyId = user.role === 'observatory' ? companyId : user.companyId;
@@ -2252,8 +2478,10 @@ function App() {
     currentPeriod,
     logout: handleLogout,
     updateSubmission,
-    createNotification,     // <-- ¡NUEVO!
-    markNotificationsRead   // <-- ¡NUEVO!
+    createNotification,     
+    markNotificationsRead,
+    addCompany,
+    addUser
   };
 
   return (
